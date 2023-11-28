@@ -361,5 +361,23 @@ def map_userid_2_realname(user_profile: dict, comm_dict: dict, plot=False):
         
     return ac_comm_dict
 
+if __name__ == '__main__':
+    path_channel = 'D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
+    channel = 'all-week1'
 
+    ################################ TEST parse_slack_reaction functions################################
+    # reactions = parse_slack_reaction(path_channel, 'week1')
+    ################################ TEST convert_2_timestamp functions################################
+    # get_community_participation(path_channel)
+    ################################ TEST convert_2_timestamp functions################################
+    data = slack_parser(path_channel)
+    comm_dict = get_community_participation(path_channel)
+    # time_column = convert_2_timestamp('time_thread_start', data)
+    # time_column_end = convert_2_timestamp('time_thread_end', data)
+    # data['time_thread_start'] = time_column
+    # data['time_thread_end'] = time_column_end
+    # res = get_tagged_users(data)
+    # print(res)
+
+    # map_userid_2_realname()
 
