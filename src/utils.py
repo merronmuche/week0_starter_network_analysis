@@ -207,13 +207,9 @@ def slack_parser(path_channel):
     # specify path to get json files
     combined = []
     files = glob.glob(f'{path_channel}*.json')
-    print(files)
     for json_file in files:
-        print(json_file)
         with open(json_file, 'r', encoding="utf8") as slack_data:
             combined.append(json.loads(slack_data.read()))
-    print('//////////////////////////////')
-    print(combined)
     # loop through all json files and extract required informations
     dflist = []
     for slack_data in combined:
@@ -370,8 +366,16 @@ if __name__ == '__main__':
     ################################ TEST convert_2_timestamp functions################################
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
-    data = slack_parser(path_channel)
+    # data = slack_parser(path_channel)
     comm_dict = get_community_participation(path_channel)
+    df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
+    df = df.sort_values(by='reply_count', ascending=False)
+    top_10_users = df.head(10)
+    bottom_10_users = df.tail(10)
+    print(comm_dict)
+
+    
+    
     # time_column = convert_2_timestamp('time_thread_start', data)
     # time_column_end = convert_2_timestamp('time_thread_end', data)
     # data['time_thread_start'] = time_column
