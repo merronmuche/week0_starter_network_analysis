@@ -357,6 +357,24 @@ def map_userid_2_realname(user_profile: dict, comm_dict: dict, plot=False):
         
     return ac_comm_dict
 
+def get_message_replies(path):
+
+    combined = []
+    for json_file in glob.glob(f"{path}*.json"):
+        with open(json_file, 'r') as slack_data:
+            combined.append(slack_data)
+    
+    replies = {}
+    for k in combined:
+        messages = json.load(open(k.name, 'r', encoding="utf-8"))
+        for message in messages:
+            if 'reply_count' in message.keys():
+                replies[message['text']] = message['reply_count']
+            
+    return replies
+
+
+
 if __name__ == '__main__':
     path_channel = 'D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
     channel = 'all-week1'
@@ -367,12 +385,12 @@ if __name__ == '__main__':
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
     # data = slack_parser(path_channel)
-    comm_dict = get_community_participation(path_channel)
-    df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
-    df = df.sort_values(by='reply_count', ascending=False)
-    top_10_users = df.head(10)
-    bottom_10_users = df.tail(10)
-    print(comm_dict)
+    # comm_dict = get_community_participation(path_channel)
+    # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
+    # df = df.sort_values(by='reply_count', ascending=False)
+    # top_10_users = df.head(10)
+    # bottom_10_users = df.tail(10)
+    # print(comm_dict)
 
     
     
@@ -384,4 +402,13 @@ if __name__ == '__main__':
     # print(res)
 
     # map_userid_2_realname()
+    # res = get_msgs_df_info(data)
+    # print(res)
+
+    replies = get_message_replies(path_channel)
+    # convert to dataframe
+    df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+    df = df.sort_values(by='reply_count', ascending=False)
+    top_10_messages = df.head(10)
+    print(replies)
 
