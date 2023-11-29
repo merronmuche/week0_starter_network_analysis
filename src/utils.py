@@ -433,7 +433,7 @@ if __name__ == '__main__':
     ################################ TEST convert_2_timestamp functions################################
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
-    # data = slack_parser(path_channel)
+    data = slack_parser(path_channel)
     # comm_dict = get_community_participation(path_channel)
     # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
     # df = df.sort_values(by='reply_count', ascending=False)
@@ -443,24 +443,28 @@ if __name__ == '__main__':
 
     
     
-    # time_column = convert_2_timestamp('time_thread_start', data)
-    # time_column_end = convert_2_timestamp('time_thread_end', data)
-    # data['time_thread_start'] = time_column
-    # data['time_thread_end'] = time_column_end
-    # res = get_tagged_users(data)
-    # print(res)
+    time_column = convert_2_timestamp('time_thread_start', data)
+    time_column_end = convert_2_timestamp('time_thread_end', data)
+    data['time_thread_start'] = time_column
+    data['time_thread_end'] = time_column_end
+    res = get_tagged_users(data)
+    print(res)
 
-    # map_userid_2_realname()
-    # res = get_msgs_df_info(data)
-    # print(res)
+    
 
-    # replies = get_message_replies(path_channel)
+    replies = get_message_replies(path_channel)
     # convert to dataframe
-    # df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
-    # df = df.sort_values(by='reply_count', ascending=False)
-    # top_10_messages = df.head(10)
-    # print(replies)
+    df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+    df = df.sort_values(by='reply_count', ascending=False)
+    top_10_messages = df.head(10)
+    print(replies)
 
-    out_df = scatter_2d_channels()
-    print(out_df)
+    data = slack_parser(path_channel)
+    # time = convert_2_timestamp('msg_sent_time', data)
+    # data['time'] = time
+    # print(data)
+
+    
+    
+    
 
