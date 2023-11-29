@@ -395,6 +395,33 @@ def get_message_reactions(path):
             
     return reactions
 
+def scatter_2d_channels(path='D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/'):
+
+    channels = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+    columns = ['messges', 'replies', 'reactions']
+    messages_list = []
+    replies_list = []
+    reactions_list = []
+    for channel in channels:
+        full_path = os.path.join(path, channel) + '/'
+        df = slack_parser(full_path)
+        n_messages = len(df)
+
+        replies = get_message_replies(full_path)
+        df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+        n_replies = df.reply_count.values.sum()
+        reactions = get_message_reactions(full_path)
+        df = pd.DataFrame(list(reactions.items()), columns=['message text', 'reactions'])
+        n_reactions = df.reactions.values.sum()
+
+        messages_list.append(n_messages)
+        replies_list.append(n_replies)
+        reactions_list.append(n_reactions)
+    
+    data = zip(messages_list, replies_list, reactions_list)
+    out_df = pd.DataFrame(data, columns= columns)
+    out_df['reactions_replies'] = out_df['replies'] + out_df['reactions']
+    return out_df
 
 
 if __name__ == '__main__':
@@ -406,8 +433,8 @@ if __name__ == '__main__':
     ################################ TEST convert_2_timestamp functions################################
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
-    data = slack_parser(path_channel)
-    comm_dict = get_community_participation(path_channel)
+    # data = slack_parser(path_channel)
+    # comm_dict = get_community_participation(path_channel)
     # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
     # df = df.sort_values(by='reply_count', ascending=False)
     # top_10_users = df.head(10)
@@ -433,4 +460,7 @@ if __name__ == '__main__':
     # df = df.sort_values(by='reply_count', ascending=False)
     # top_10_messages = df.head(10)
     # print(replies)
+
+    out_df = scatter_2d_channels()
+    print(out_df)
 
