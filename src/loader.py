@@ -87,6 +87,7 @@ class SlackDataLoader:
             userNamesById[user['id']] = user['name']
             userIdsByName[user['name']] = user['id']
         return userNamesById, userIdsByName    
+    
 
     ################### migrated form notebook
     # combine all json file in all-weeks8-9

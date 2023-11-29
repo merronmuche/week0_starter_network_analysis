@@ -357,6 +357,73 @@ def map_userid_2_realname(user_profile: dict, comm_dict: dict, plot=False):
         
     return ac_comm_dict
 
+def get_message_replies(path):
+
+    combined = []
+    for json_file in glob.glob(f"{path}*.json"):
+        with open(json_file, 'r') as slack_data:
+            combined.append(slack_data)
+    
+    replies = {}
+    for k in combined:
+        messages = json.load(open(k.name, 'r', encoding="utf-8"))
+        for message in messages:
+            if 'reply_count' in message.keys():
+                replies[message['text']] = message['reply_count']
+            
+    return replies
+
+
+def get_message_reactions(path):
+
+    combined = []
+    for json_file in glob.glob(f"{path}*.json"):
+        with open(json_file, 'r') as slack_data:
+            combined.append(slack_data)
+    
+    reactions = {}
+    for k in combined:
+        messages = json.load(open(k.name, 'r', encoding="utf-8"))
+        for message in messages:
+            if 'reactions' in message.keys():
+                msg_reactions = message['reactions']
+                for reaction in msg_reactions:
+                    if message['text'] in reaction.keys():
+                        reactions[message['text']] += reaction['count']
+                    else:
+                        reactions[message['text']] = reaction['count']
+            
+    return reactions
+
+def scatter_2d_channels(path='D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/'):
+
+    channels = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
+    columns = ['channels', 'messges', 'replies', 'reactions']
+    messages_list = []
+    replies_list = []
+    reactions_list = []
+    for channel in channels:
+        full_path = os.path.join(path, channel) + '/'
+        df = slack_parser(full_path)
+        n_messages = len(df)
+
+        replies = get_message_replies(full_path)
+        df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+        n_replies = df.reply_count.values.sum()
+        reactions = get_message_reactions(full_path)
+        df = pd.DataFrame(list(reactions.items()), columns=['message text', 'reactions'])
+        n_reactions = df.reactions.values.sum()
+
+        messages_list.append(n_messages)
+        replies_list.append(n_replies)
+        reactions_list.append(n_reactions)
+    
+    data = zip(channels, messages_list, replies_list, reactions_list)
+    out_df = pd.DataFrame(data, columns= columns)
+    out_df['reactions_replies'] = out_df['replies'] + out_df['reactions']
+    return out_df
+
+
 if __name__ == '__main__':
     path_channel = 'D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
     channel = 'all-week1'
@@ -367,12 +434,12 @@ if __name__ == '__main__':
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
     # data = slack_parser(path_channel)
-    comm_dict = get_community_participation(path_channel)
-    df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
-    df = df.sort_values(by='reply_count', ascending=False)
-    top_10_users = df.head(10)
-    bottom_10_users = df.tail(10)
-    print(comm_dict)
+    # comm_dict = get_community_participation(path_channel)
+    # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
+    # df = df.sort_values(by='reply_count', ascending=False)
+    # top_10_users = df.head(10)
+    # bottom_10_users = df.tail(10)
+    # print(comm_dict)
 
     
     
@@ -384,4 +451,16 @@ if __name__ == '__main__':
     # print(res)
 
     # map_userid_2_realname()
+    # res = get_msgs_df_info(data)
+    # print(res)
+
+    # replies = get_message_replies(path_channel)
+    # convert to dataframe
+    # df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+    # df = df.sort_values(by='reply_count', ascending=False)
+    # top_10_messages = df.head(10)
+    # print(replies)
+
+    out_df = scatter_2d_channels()
+    print(out_df)
 
