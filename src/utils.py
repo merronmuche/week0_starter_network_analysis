@@ -398,7 +398,7 @@ def get_message_reactions(path):
 def scatter_2d_channels(path='D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/'):
 
     channels = [name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name))]
-    columns = ['messges', 'replies', 'reactions']
+    columns = ['channels', 'messges', 'replies', 'reactions']
     messages_list = []
     replies_list = []
     reactions_list = []
@@ -418,7 +418,7 @@ def scatter_2d_channels(path='D:/tenacademy/codes/week0_starter_network_analysis
         replies_list.append(n_replies)
         reactions_list.append(n_reactions)
     
-    data = zip(messages_list, replies_list, reactions_list)
+    data = zip(channels, messages_list, replies_list, reactions_list)
     out_df = pd.DataFrame(data, columns= columns)
     out_df['reactions_replies'] = out_df['replies'] + out_df['reactions']
     return out_df
