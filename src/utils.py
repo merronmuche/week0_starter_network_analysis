@@ -374,6 +374,28 @@ def get_message_replies(path):
     return replies
 
 
+def get_message_reactions(path):
+
+    combined = []
+    for json_file in glob.glob(f"{path}*.json"):
+        with open(json_file, 'r') as slack_data:
+            combined.append(slack_data)
+    
+    reactions = {}
+    for k in combined:
+        messages = json.load(open(k.name, 'r', encoding="utf-8"))
+        for message in messages:
+            if 'reactions' in message.keys():
+                msg_reactions = message['reactions']
+                for reaction in msg_reactions:
+                    if message['text'] in reaction.keys():
+                        reactions[message['text']] += reaction['count']
+                    else:
+                        reactions[message['text']] = reaction['count']
+            
+    return reactions
+
+
 
 if __name__ == '__main__':
     path_channel = 'D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
@@ -384,8 +406,8 @@ if __name__ == '__main__':
     ################################ TEST convert_2_timestamp functions################################
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
-    # data = slack_parser(path_channel)
-    # comm_dict = get_community_participation(path_channel)
+    data = slack_parser(path_channel)
+    comm_dict = get_community_participation(path_channel)
     # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
     # df = df.sort_values(by='reply_count', ascending=False)
     # top_10_users = df.head(10)
@@ -405,10 +427,10 @@ if __name__ == '__main__':
     # res = get_msgs_df_info(data)
     # print(res)
 
-    replies = get_message_replies(path_channel)
+    # replies = get_message_replies(path_channel)
     # convert to dataframe
-    df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
-    df = df.sort_values(by='reply_count', ascending=False)
-    top_10_messages = df.head(10)
-    print(replies)
+    # df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+    # df = df.sort_values(by='reply_count', ascending=False)
+    # top_10_messages = df.head(10)
+    # print(replies)
 
