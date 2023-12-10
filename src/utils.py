@@ -43,11 +43,12 @@ def break_combined_weeks(combined_weeks):
 
 
 def get_msgs_df_info(df):
+    print(df['replies'])
     msgs_count_dict = df.user.value_counts().to_dict()
     replies_count_dict = dict(Counter([u for r in df.replies if r != None for u in r]))
     mentions_count_dict = dict(Counter([u for m in df.mentions if m != None for u in m]))
     links_count_dict = df.groupby("user").link_count.sum().to_dict()
-    return msgs_count_dict, replies_count_dict, mentions_count_dict, links_count_dict
+    return msgs_count_dict, replies_count_dict, mentions_count_dict,links_count_dict
 
 
 def get_messages_dict(msgs):
@@ -135,7 +136,7 @@ def from_msg_get_replies(msg):
             for reply in msg["replies"]:
                 reply["thread_ts"] = msg["thread_ts"]
                 reply["message_id"] = msg["client_msg_id"]
-                replies.append(reply)
+                replies.append(reply) 
         except:
             pass
     return replies
@@ -165,12 +166,14 @@ def get_messages_from_channel(channel_path):
     get all the messages from a channel        
     '''
     channel_json_files = os.listdir(channel_path)
-    channel_msgs = [json.load(open(channel_path + "/" + f)) for f in channel_json_files]
-
-    df = pd.concat([pd.DataFrame(get_messages_dict(msgs)) for msgs in channel_msgs])
+    channel_msgs = [json.load(open(channel_path + f)) for f in channel_json_files if f.endswith('.json')]
+    df = pd.concat([pd.DataFrame.from_dict(get_messages_dict(msgs),orient='index') for msgs in channel_msgs])
+    df = df.transpose()
+    df = df.drop_duplicates()
     print(f"Number of messages in channel: {len(df)}")
-
+    
     return df
+
 
 
 def convert_2_timestamp(column, data):
@@ -215,12 +218,30 @@ def slack_parser(path_channel):
     for slack_data in combined:
 
         msg_type, msg_content, sender_id, time_msg, msg_dist, time_thread_st, reply_users, \
-            reply_count, reply_users_count, tm_thread_end = [], [], [], [], [], [], [], [], [], []
+            reply_count, reply_users_count, tm_thread_end, user,replies,mentions = [], [], [], [], [], [], [], [], [], [],[],[],[]
 
         for row in slack_data:
             if 'bot_id' in row.keys():
                 continue
             else:
+                if 'user' in row.keys():
+                    user.append(row['user'])
+                else:
+                    user.append(None)
+                if 'replies' in row.keys():
+                    rep=[]
+                    for reply in row['replies']:
+                        rep.append(reply['user'])
+                    replies.append(rep)
+                    # replies.append(",".join(row[0]['replies']))
+                else:
+                    replies.append(None)
+
+                tagged_user = re.findall(r'@U\w+', row['text'])
+                if tagged_user:
+                  mentions.append(tagged_user)
+                else:
+                    mentions.append(None)
                 msg_type.append(row['type'])
                 msg_content.append(row['text'])
                 if 'user_profile' in row.keys():
@@ -249,9 +270,10 @@ def slack_parser(path_channel):
                     reply_users_count.append(0)
                     tm_thread_end.append(0)
         data = zip(msg_type, msg_content, sender_id, time_msg, msg_dist, time_thread_st,
-                   reply_count, reply_users_count, reply_users, tm_thread_end)
+                   reply_count, reply_users_count, reply_users, tm_thread_end, user,replies,mentions)
         columns = ['msg_type', 'msg_content', 'sender_name', 'msg_sent_time', 'msg_dist_type',
-                   'time_thread_start', 'reply_count', 'reply_users_count', 'reply_users', 'tm_thread_end']
+                   'time_thread_start', 'reply_count', 'reply_users_count', 'reply_users',
+                     'tm_thread_end','user','replies','mentions']
 
         df = pd.DataFrame(data=data, columns=columns)
         df = df[df['sender_name'] != 'Not provided']
@@ -425,7 +447,7 @@ def scatter_2d_channels(path='D:/tenacademy/codes/week0_starter_network_analysis
 
 
 if __name__ == '__main__':
-    path_channel = 'D:/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
+    path_channel = '/home/meron/work/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week1/'
     channel = 'all-week1'
 
     ################################ TEST parse_slack_reaction functions################################
@@ -433,38 +455,44 @@ if __name__ == '__main__':
     ################################ TEST convert_2_timestamp functions################################
     # get_community_participation(path_channel)
     ################################ TEST convert_2_timestamp functions################################
-    data = slack_parser(path_channel)
+    # data = slack_parser(path_channel)
     # comm_dict = get_community_participation(path_channel)
     # df = pd.DataFrame(list(comm_dict.items()), columns=['user_id', 'reply_count'])
     # df = df.sort_values(by='reply_count', ascending=False)
     # top_10_users = df.head(10)
     # bottom_10_users = df.tail(10)
     # print(comm_dict)
+    
+    # time_column = convert_2_timestamp('time_thread_start', data)
+    # time_column_end = convert_2_timestamp('time_thread_end', data)
+    # data['time_thread_start'] = time_column
+    # data['time_thread_end'] = time_column_end
+    # res = get_tagged_users(data)
+    # print(res)
+
+    # replies = get_message_replies(path_channel)
+    # # convert to dataframe
+    # df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
+    # df = df.sort_values(by='reply_count', ascending=False)
+    # top_10_messages = df.head(10)
+    # print(replies)
+
+    # data = slack_parser(path_channel)
+    # mmm = get_msgs_df_info(data)
+    # print(mmm)
+
+    file = '/home/meron/work/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week3/'
+    df_channel= get_messages_from_channel(file)
+    msgs_info = get_msgs_df_info(df_channel)
+    print(msgs_info)
 
     
-    
-    time_column = convert_2_timestamp('time_thread_start', data)
-    time_column_end = convert_2_timestamp('time_thread_end', data)
-    data['time_thread_start'] = time_column
-    data['time_thread_end'] = time_column_end
-    res = get_tagged_users(data)
-    print(res)
 
-    
-
-    replies = get_message_replies(path_channel)
-    # convert to dataframe
-    df = pd.DataFrame(list(replies.items()), columns=['message text', 'reply_count'])
-    df = df.sort_values(by='reply_count', ascending=False)
-    top_10_messages = df.head(10)
-    print(replies)
-
-    data = slack_parser(path_channel)
     # time = convert_2_timestamp('msg_sent_time', data)
     # data['time'] = time
     # print(data)
 
-    
+# from_msg_get_replies("/home/meron/work/tenacademy/codes/week0_starter_network_analysis/data/anonymized/all-week2/2022-08-28.json") 
     
     
 
